@@ -85,9 +85,13 @@ int main()
 
 		// Compile OpenCL program for found device.
 		std::ifstream source_file("hello.cl");
-		std::string source_code(std::istreambuf_iterator<char>(source_file), (std::istreambuf_iterator<char>()));
-		cl::Program program(context, cl::Program::Sources(
-										 1, std::make_pair(source_code.c_str(), source_code.length())));
+		std::string source_code(
+			std::istreambuf_iterator<char>(source_file),
+			(std::istreambuf_iterator<char>()));
+		cl::Program program(
+			context,
+			cl::Program::Sources(
+				1, std::make_pair(source_code.c_str(), source_code.length())));
 
 		try
 		{
@@ -130,13 +134,24 @@ int main()
 		auto begin = std::chrono::high_resolution_clock::now();
 
 		// Launch kernel on the compute device.
-		queue.enqueueNDRangeKernel(add, cl::NullRange, cl::NDRange(dimensions[0], dimensions[1], dimensions[2]), cl::NullRange, nullptr, event_handler);
+		queue.enqueueNDRangeKernel(
+			add,
+			cl::NullRange,
+			cl::NDRange(
+				dimensions[0],
+				dimensions[1],
+				dimensions[2]),
+			cl::NullRange,
+			nullptr, event_handler);
 
 		// Wait for kernel to complete so we get accurate timing
 		event_handler->wait();
 
 		auto end = std::chrono::high_resolution_clock::now();
-		std::cout << "Computed " << global_dim << " values in " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << "ms" << std::endl;
+		std::cout
+			<< "Computed " << global_dim << " values in "
+			<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+			<< "ms" << std::endl;
 
 		// Get result back to host.
 		queue.enqueueReadBuffer(C, CL_TRUE, 0, c.size() * sizeof(double), c.data(), nullptr, event_handler);
@@ -149,7 +164,7 @@ int main()
 		// Should get <global_dim> number of lines, each with result 3
 		for (uint i = 0; i < global_dim; ++i)
 		{
-			assert (c[i] == 3);
+			assert(c[i] == 3);
 		}
 	}
 	catch (const cl::Error &err)
