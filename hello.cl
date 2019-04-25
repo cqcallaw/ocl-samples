@@ -7,6 +7,6 @@
 #endif
 
 kernel void hello_kernel(global const double *a, global const double *b, global double *c) {
-	uint gid = get_global_id(0);
+	size_t gid = get_global_id(0);
 	c[gid] = a[gid] + b[gid];
 };

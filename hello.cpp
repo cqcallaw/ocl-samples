@@ -2,24 +2,26 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <assert.h>
+#include <chrono>
 
 #define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.hpp>
 
 /* Compute c = a + b.
 
-Derived from https://gist.github.com/ddemidov/2925717 with various fixes:
+Derived from https://gist.github.com/ddemidov/2925717 with various fixes and tweaks:
 
 - Add event handler and wait statement to prevent race conditions
 - Move OpenCL kernel to separate source file for readability
 - Use enqueueNDRangeKernel arguments instead of kernel conditional to control work item count
+- Query dimension information from device
+- Timing information
 - Code formatting
 */
 
 int main()
 {
-	const size_t N = 32;
-
 	try
 	{
 		// Get list of OpenCL platforms.
@@ -34,8 +36,8 @@ int main()
 
 		// Get first available GPU device which supports double precision.
 		cl::Context context;
-		std::vector<cl::Device> device;
-		for (auto p = platform.begin(); device.empty() && p != platform.end(); p++)
+		std::vector<cl::Device> devices;
+		for (auto p = platform.begin(); devices.empty() && p != platform.end(); p++)
 		{
 			std::vector<cl::Device> pldev;
 
@@ -43,7 +45,7 @@ int main()
 			{
 				p->getDevices(CL_DEVICE_TYPE_GPU, &pldev);
 
-				for (auto d = pldev.begin(); device.empty() && d != pldev.end(); d++)
+				for (auto d = pldev.begin(); devices.empty() && d != pldev.end(); d++)
 				{
 					if (!d->getInfo<CL_DEVICE_AVAILABLE>())
 						continue;
@@ -55,26 +57,31 @@ int main()
 						ext.find("cl_amd_fp64") == std::string::npos)
 						continue;
 
-					device.push_back(*d);
-					context = cl::Context(device);
+					devices.push_back(*d);
+					context = cl::Context(devices);
 				}
 			}
 			catch (...)
 			{
-				device.clear();
+				devices.clear();
 			}
 		}
 
-		if (device.empty())
+		if (devices.empty())
 		{
 			std::cerr << "GPUs with double precision not found." << std::endl;
 			return 1;
 		}
 
-		std::cout << "Using device " << device[0].getInfo<CL_DEVICE_NAME>() << std::endl;
+		std::cout << "Using device " << devices[0].getInfo<CL_DEVICE_NAME>() << std::endl;
+
+		auto dimensions = devices[0].getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>();
+
+		std::cout << "Max dimensions: " << dimensions[0] << "x" << dimensions[1] << "x" << dimensions[2] << std::endl;
+		size_t global_dim = dimensions[0]; // use one dimension for demostration purposes
 
 		// Create command queue.
-		cl::CommandQueue queue(context, device[0]);
+		cl::CommandQueue queue(context, devices[0]);
 
 		// Compile OpenCL program for found device.
 		std::ifstream source_file("hello.cl");
@@ -84,13 +91,13 @@ int main()
 
 		try
 		{
-			program.build(device);
+			program.build(devices);
 		}
 		catch (const cl::Error &)
 		{
 			std::cerr
 				<< "OpenCL compilation error" << std::endl
-				<< program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device[0])
+				<< program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0])
 				<< std::endl;
 			return 1;
 		}
@@ -98,9 +105,9 @@ int main()
 		cl::Kernel add(program, "hello_kernel");
 
 		// Prepare input data.
-		std::vector<double> a(N, 1);
-		std::vector<double> b(N, 2);
-		std::vector<double> c(N);
+		std::vector<double> a(global_dim, 1);
+		std::vector<double> b(global_dim, 2);
+		std::vector<double> c(global_dim);
 
 		// Allocate device buffers and transfer input data to device.
 		cl::Buffer A(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -120,21 +127,29 @@ int main()
 		// Setup event handler
 		cl::Event *event_handler = new cl::Event();
 
+		auto begin = std::chrono::high_resolution_clock::now();
+
 		// Launch kernel on the compute device.
-		queue.enqueueNDRangeKernel(add, cl::NullRange, cl::NDRange(N, 1, 1), cl::NullRange, nullptr, event_handler);
+		queue.enqueueNDRangeKernel(add, cl::NullRange, cl::NDRange(dimensions[0], dimensions[1], dimensions[2]), cl::NullRange, nullptr, event_handler);
+
+		// Wait for kernel to complete so we get accurate timing
+		event_handler->wait();
+
+		auto end = std::chrono::high_resolution_clock::now();
+		std::cout << "Computed " << global_dim << " values in " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << "ms" << std::endl;
 
 		// Get result back to host.
-		queue.enqueueReadBuffer(C, CL_TRUE, 0, c.size() * sizeof(double), c.data());
+		queue.enqueueReadBuffer(C, CL_TRUE, 0, c.size() * sizeof(double), c.data(), nullptr, event_handler);
 
-		// Wait for kernel to complete before reading results
+		// Wait for read back to complete before verifying results
 		event_handler->wait();
 
 		delete event_handler;
 
-		// Should get N number of lines, each with result 3
-		for (uint i = 0; i < N; ++i)
+		// Should get <global_dim> number of lines, each with result 3
+		for (uint i = 0; i < global_dim; ++i)
 		{
-			std::cout << "[" << i << "]: " << c[i] << std::endl;
+			assert (c[i] == 3);
 		}
 	}
 	catch (const cl::Error &err)
