@@ -107,7 +107,7 @@ int main()
 		add.setArg(1, B);
 		add.setArg(2, C);
 
-		// set up event handler
+		// Setup event handler
 		cl::Event* event_handler = new cl::Event();
 
 		// Launch kernel on the compute device.
@@ -116,17 +116,15 @@ int main()
 		// Get result back to host.
 		queue.enqueueReadBuffer(C, CL_TRUE, 0, c.size() * sizeof(double), c.data());
 
-		// wait for kernel to complete before reading results
+		// Wait for kernel to complete before reading results
 		event_handler->wait();
 
 		delete event_handler;
 
-		// Should get '3' here.
+		// Should get N number of lines, each with result 3
 		for(uint i = 0; i < N; ++i){
 			std::cout << "[" << i << "]: " << c[i] << std::endl;
 		}
-
-
 	}
 	catch (const cl::Error &err)
 	{
