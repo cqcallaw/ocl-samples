@@ -77,7 +77,7 @@ int main()
 		cl::CommandQueue queue(context, device[0]);
 
 		// Compile OpenCL program for found device.
-		std::ifstream source_file("main.cl");
+		std::ifstream source_file("hello.cl");
 		std::string source_code(std::istreambuf_iterator<char>(source_file), (std::istreambuf_iterator<char>()));
 		cl::Program program(context, cl::Program::Sources(
 										 1, std::make_pair(source_code.c_str(), source_code.length())));
@@ -95,7 +95,7 @@ int main()
 			return 1;
 		}
 
-		cl::Kernel add(program, "main_kernel");
+		cl::Kernel add(program, "hello_kernel");
 
 		// Prepare input data.
 		std::vector<double> a(N, 1);

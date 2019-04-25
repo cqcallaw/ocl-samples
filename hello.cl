@@ -6,7 +6,7 @@
 #  error double precision is not supported
 #endif
 
-kernel void main_kernel(global const double *a, global const double *b, global double *c) {
+kernel void hello_kernel(global const double *a, global const double *b, global double *c) {
 	uint gid = get_global_id(0);
 	c[gid] = a[gid] + b[gid];
 };
