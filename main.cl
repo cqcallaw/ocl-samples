@@ -6,9 +6,8 @@
 #  error double precision is not supported
 #endif
 
-kernel void add(ulong n, global const double *a, global const double *b, global double *c) {
-	size_t i = get_global_id(0);
-	if (i < n) {
-		c[i] = a[i] + b[i];
-	}
+kernel void main_kernel(global const double *a, global const double *b, global double *c) {
+	uint gid = get_global_id(0);
+	printf("Hello from gid %d\n", gid);
+	c[gid] = a[gid] + b[gid];
 };

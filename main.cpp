@@ -9,7 +9,7 @@
 // Compute c = a + b.
 
 int main() {
-	const size_t N = 1 << 20;
+	const size_t N = 32;
 
 	try {
 	// Get list of OpenCL platforms.
@@ -53,8 +53,6 @@ int main() {
 		return 1;
 	}
 
-	std::cout << device[0].getInfo<CL_DEVICE_NAME>() << std::endl;
-
 	// Create command queue.
 	cl::CommandQueue queue(context, device[0]);
 
@@ -75,7 +73,7 @@ int main() {
 		return 1;
 	}
 
-	cl::Kernel add(program, "add");
+	cl::Kernel add(program, "main_kernel");
 
 	// Prepare input data.
 	std::vector<double> a(N, 1);
@@ -99,13 +97,13 @@ int main() {
 	add.setArg(3, C);
 
 	// Launch kernel on the compute device.
-	queue.enqueueNDRangeKernel(add, cl::NullRange, N, cl::NullRange);
+	queue.enqueueNDRangeKernel(add, cl::NullRange, cl::NDRange(N, 1, 1));
 
 	// Get result back to host.
 	queue.enqueueReadBuffer(C, CL_TRUE, 0, c.size() * sizeof(double), c.data());
 
 	// Should get '3' here.
-	std::cout << c[42] << std::endl;
+	std::cout << c[N - 1] << std::endl;
 	} catch (const cl::Error &err) {
 	std::cerr
 		<< "OpenCL error: "
