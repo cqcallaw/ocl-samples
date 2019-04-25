@@ -78,7 +78,7 @@ int main()
 		auto dimensions = devices[0].getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>();
 
 		std::cout << "Max dimensions: " << dimensions[0] << "x" << dimensions[1] << "x" << dimensions[2] << std::endl;
-		size_t global_dim = dimensions[0]; // use one dimension for demostration purposes
+		size_t global_dim = dimensions[0] * dimensions[1] * dimensions[2];
 
 		// Create command queue.
 		cl::CommandQueue queue(context, devices[0]);
@@ -130,13 +130,13 @@ int main()
 		auto begin = std::chrono::high_resolution_clock::now();
 
 		// Launch kernel on the compute device.
-		queue.enqueueNDRangeKernel(add, cl::NullRange, cl::NDRange(global_dim, 1, 1), cl::NullRange, nullptr, event_handler);
+		queue.enqueueNDRangeKernel(add, cl::NullRange, cl::NDRange(dimensions[0], dimensions[1], dimensions[2]), cl::NullRange, nullptr, event_handler);
 
 		// Wait for kernel to complete so we get accurate timing
 		event_handler->wait();
 
 		auto end = std::chrono::high_resolution_clock::now();
-		std::cout << "Computed " << global_dim << " values in " << std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << "ns" << std::endl;
+		std::cout << "Computed " << global_dim << " values in " << std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << "ms" << std::endl;
 
 		// Get result back to host.
 		queue.enqueueReadBuffer(C, CL_TRUE, 0, c.size() * sizeof(double), c.data(), nullptr, event_handler);

@@ -7,6 +7,17 @@
 #endif
 
 kernel void hello_kernel(global const double *a, global const double *b, global double *c) {
-	size_t gid = get_global_id(0);
-	c[gid] = a[gid] + b[gid];
+	size_t gid_x = get_global_id(0);
+	size_t gid_y = get_global_id(1);
+	size_t gid_z = get_global_id(2);
+
+	// get necessary dimensions for buffer offsets
+	size_t columns = get_global_size(0);
+	size_t rows = get_global_size(1);
+
+	// compute buffer offset from dimensional information
+	size_t buffer_offset = gid_x + gid_y * columns + gid_z * columns * rows;
+
+	// do computation
+	*(c + buffer_offset) = *(a + buffer_offset) + *(b + buffer_offset);
 };
