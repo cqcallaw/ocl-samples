@@ -8,6 +8,5 @@
 
 kernel void main_kernel(global const double *a, global const double *b, global double *c) {
 	uint gid = get_global_id(0);
-	printf("Hello from gid %d\n", gid);
 	c[gid] = a[gid] + b[gid];
 };

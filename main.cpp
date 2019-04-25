@@ -103,19 +103,30 @@ int main()
 					 c.size() * sizeof(double));
 
 		// Set kernel parameters.
-		add.setArg(0, static_cast<cl_ulong>(N));
-		add.setArg(1, A);
-		add.setArg(2, B);
-		add.setArg(3, C);
+		add.setArg(0, A);
+		add.setArg(1, B);
+		add.setArg(2, C);
+
+		// set up event handler
+		cl::Event* event_handler = new cl::Event();
 
 		// Launch kernel on the compute device.
-		queue.enqueueNDRangeKernel(add, cl::NullRange, cl::NDRange(N, 1, 1));
+		queue.enqueueNDRangeKernel(add, cl::NullRange, cl::NDRange(N, 1, 1), cl::NullRange, nullptr, event_handler);
 
 		// Get result back to host.
 		queue.enqueueReadBuffer(C, CL_TRUE, 0, c.size() * sizeof(double), c.data());
 
+		// wait for kernel to complete before reading results
+		event_handler->wait();
+
+		delete event_handler;
+
 		// Should get '3' here.
-		std::cout << c[N - 1] << std::endl;
+		for(uint i = 0; i < N; ++i){
+			std::cout << "[" << i << "]: " << c[i] << std::endl;
+		}
+
+
 	}
 	catch (const cl::Error &err)
 	{
