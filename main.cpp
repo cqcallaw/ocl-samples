@@ -6,7 +6,15 @@
 #define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.hpp>
 
-// Compute c = a + b.
+/* Compute c = a + b.
+
+Derived from https://gist.github.com/ddemidov/2925717 with various fixes:
+
+- Add event handler and wait statement to prevent race conditions
+- Move OpenCL kernel to separate source file for readability
+- Use enqueueNDRangeKernel arguments instead of kernel conditional to control work item count
+- Code formatting
+*/
 
 int main()
 {
@@ -63,6 +71,8 @@ int main()
 			return 1;
 		}
 
+		std::cout << "Using device " << device[0].getInfo<CL_DEVICE_NAME>() << std::endl;
+
 		// Create command queue.
 		cl::CommandQueue queue(context, device[0]);
 
@@ -108,7 +118,7 @@ int main()
 		add.setArg(2, C);
 
 		// Setup event handler
-		cl::Event* event_handler = new cl::Event();
+		cl::Event *event_handler = new cl::Event();
 
 		// Launch kernel on the compute device.
 		queue.enqueueNDRangeKernel(add, cl::NullRange, cl::NDRange(N, 1, 1), cl::NullRange, nullptr, event_handler);
@@ -122,7 +132,8 @@ int main()
 		delete event_handler;
 
 		// Should get N number of lines, each with result 3
-		for(uint i = 0; i < N; ++i){
+		for (uint i = 0; i < N; ++i)
+		{
 			std::cout << "[" << i << "]: " << c[i] << std::endl;
 		}
 	}
