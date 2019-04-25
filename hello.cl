@@ -18,6 +18,6 @@ kernel void hello_kernel(global const double *a, global const double *b, global 
 	// compute buffer offset from dimensional information
 	size_t buffer_offset = gid_x + gid_y * columns + gid_z * columns * rows;
 
-	// do computation
+	// do computation, though kernel runtime is dominated by address offset computations
 	*(c + buffer_offset) = *(a + buffer_offset) + *(b + buffer_offset);
 };
