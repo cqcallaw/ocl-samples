@@ -84,7 +84,7 @@ int main()
 		cl::CommandQueue queue(context, devices[0]);
 
 		// Compile OpenCL program for found device.
-		std::ifstream source_file("hello.cl");
+		std::ifstream source_file("src/hello/hello.cl");
 		std::string source_code(
 			std::istreambuf_iterator<char>(source_file),
 			(std::istreambuf_iterator<char>()));
