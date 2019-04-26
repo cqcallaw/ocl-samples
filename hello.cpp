@@ -138,9 +138,9 @@ int main()
 			add,
 			cl::NullRange,
 			cl::NDRange(
-				dimensions[0],
-				dimensions[1],
-				dimensions[2]),
+				global_dim,
+				1,
+				1),
 			cl::NullRange,
 			nullptr, event_handler);
 
