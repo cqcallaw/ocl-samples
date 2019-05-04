@@ -25,11 +25,11 @@ The OpenCL API has its own set of header files; the above command installs both 
 # Install Compute Runtime
 OpenCL requires a compute runtime to manage the interaction between the OpenCL API and the GPU.
 
-## AMD
+### AMD
 
 TODO
 
-## Intel
+### Intel
 Intel's OpenCL support is provided through the NEO compute runtime, available as a PPA.
 
 ```
@@ -38,7 +38,7 @@ $ sudo apt update
 $ sudo apt install intel-opencl
 ```
 
-## Nvidia
+### Nvidia
 Nvidia provides OpenCL support through their proprietary driver, available from the [graphics-drivers PPA](https://launchpad.net/~graphics-drivers/+archive/ubuntu/ppa).
 
 ```
@@ -58,7 +58,7 @@ $ clinfo
 
 # Troubleshooting
 
-If clinfo indicates there are 0 supported platforms:
+If `clinfo` indicates there are 0 supported platforms:
 
 1. Verify your host has OpenCL-capable hardware attached
 2. Verify clinfo is running as a user with direct GPU access (member of the `video` group)
