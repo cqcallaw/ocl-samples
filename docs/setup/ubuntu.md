@@ -2,24 +2,25 @@
 
 Most modern GPUs support OpenCL. For integrated graphics devices (iGPUs), use `lscpu` to get the processor SKU. Detailed information for Intel SKUs is available from [ark.intel.com](ark.intel.com). Detailed information for AMD processors is available from [AMD's product page](https://www.amd.com/en/products/specifications/processors).
 
-# Install OCL Headers and ICD Loader
+# Configure Permissions
 ```
-$ sudo apt install opencl-c-headers opencl-clhpp-headers
+$ sudo usermod -a -G video <user_id>
 ```
-The OpenCL API has its own set of header files; the above command installs both C and C++ headers files. The C header can be found in `<CL/cl.h>`; C++ header is in `<CL/cl.hpp>`
 
+Users running OpenCL applications require direct access to the GPU; this access is granted by membership in the `video` group.
+
+# Install OCL ICD Loader
 ```
 $ sudo apt install ocl-icd-libopencl1 ocl-icd-opencl-dev
 ```
 
 OpenCL applications generally link against an OpenCL Installable Compute Device (ICD) loader instead of a specific OpenCL implementation; see [https://github.com/bashbaug/OpenCLPapers/blob/master/OpenCLOnLinux.asciidoc](https://github.com/bashbaug/OpenCLPapers/blob/master/OpenCLOnLinux.asciidoc) for more information about this system.
 
-# Configure Permissions
+# Install OCL Headers
 ```
-$ sudo usermod -a -G video <user_id>
+$ sudo apt install opencl-c-headers opencl-clhpp-headers
 ```
-
-Users running OpenCL applications require direct access to the GPU. This access is granted by membership in the `video` group, so  unprivileged development users must be made members of this group.
+The OpenCL API has its own set of header files; the above command installs both C and C++ headers files. The C header can be found in `<CL/cl.h>`; the C++ header is in `<CL/cl.hpp>`.
 
 # Install Compute Runtime
 OpenCL requires a compute runtime to manage the interaction between the OpenCL API and the GPU.
@@ -54,3 +55,11 @@ $ sudo apt install clinfo
 $ clinfo
 <platform information should show here>
 ```
+
+# Troubleshooting
+
+If clinfo indicates there are 0 supported platforms:
+
+1. Verify your host has OpenCL-capable hardware attached
+2. Verify clinfo is running as a user with direct GPU access (member of the `video` group)
+3. Verify the correct compute runtime is installed

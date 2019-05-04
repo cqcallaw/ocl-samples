@@ -18,3 +18,13 @@ $ git clone https://github.com/cqcallaw/ocl-samples.git && cd ocl-samples
 $ make
 $ ./hello
 ```
+
+Sample output:
+
+```
+$ ./hello
+Using device GeForce GTX 1080
+Max dimensions: 1024x1024x64
+Computed 67108864 values in 128ms
+$
+```
