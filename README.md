@@ -1,5 +1,5 @@
 # Audience
-The following guide is written for developers who are familiar with the Linux Command Line Interface (CLI), and developing C or C++ applications in Linux.
+This code and documentation is written for developers who are familiar with C/C++ application development in Linux and want to explore OpenCL application development.
 
 # Why OpenCL?
 
