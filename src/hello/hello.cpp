@@ -69,21 +69,26 @@ int main()
 
 		if (devices.empty())
 		{
-			std::cerr << "GPUs with double precision not found." << std::endl;
+			std::cerr << "No GPU with double precision not found." << std::endl;
 			return 1;
 		}
 
 		std::cout << "Using device " << devices[0].getInfo<CL_DEVICE_NAME>() << std::endl;
 
+		// Query the GPU's work item maximum
 		auto dimensions = devices[0].getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>();
-
 		std::cout << "Max dimensions: " << dimensions[0] << "x" << dimensions[1] << "x" << dimensions[2] << std::endl;
 		size_t global_dim = dimensions[0] * dimensions[1] * dimensions[2];
 
 		// Create command queue.
 		cl::CommandQueue queue(context, devices[0]);
 
-		// Compile OpenCL program for found device.
+		// Compile OpenCL program for selected device.
+		//
+		// OpenCL devices may not share hardware instruction sets.
+		// To allow this sample to run on any available device, we perform online compilation.
+		//
+		// Offline compilation is also possible; see the clGetProgramInfo docs for more information.
 		std::ifstream source_file("src/hello/hello.cl");
 		std::string source_code(
 			std::istreambuf_iterator<char>(source_file),
@@ -106,6 +111,8 @@ int main()
 			return 1;
 		}
 
+		// Create an OpenCL kernel instance for the "hello_kernel" kernel
+		// specified in the OpenCL source file.
 		cl::Kernel add(program, "hello_kernel");
 
 		// Prepare input data.
@@ -144,7 +151,7 @@ int main()
 			cl::NullRange,
 			nullptr, event_handler);
 
-		// Wait for kernel to complete so we get accurate timing
+		// Wait for kernel to complete so we can get accurate timing
 		event_handler->wait();
 
 		auto end = std::chrono::high_resolution_clock::now();
@@ -161,7 +168,7 @@ int main()
 
 		delete event_handler;
 
-		// Should get <global_dim> number of lines, each with result 3
+		// Should get <global_dim> results, each with result 3
 		for (uint i = 0; i < global_dim; ++i)
 		{
 			assert(c[i] == 3);
