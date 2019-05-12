@@ -28,3 +28,9 @@ Max dimensions: 1024x1024x64
 Computed 67108864 values in 128ms
 $
 ```
+
+# Further Reading
+
+* [Khronos OpenCL page](https://www.khronos.org/opencl/)
+* [OpenCL return codes](https://streamhpc.com/blog/2013-04-28/opencl-error-codes/)
+* [SimpleOpenCLSamples](https://github.com/bashbaug/SimpleOpenCLSamples)
